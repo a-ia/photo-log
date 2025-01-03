@@ -1,0 +1,37 @@
+# POST request to add a photo
+POST http://localhost:8228/log/api/photos
+Content-Type: application/json
+
+{
+  "title": "Test Photo",
+  "description": "Test Description",
+  "filename": "test.jpg",
+  "tags": ["test", "first"]
+}
+
+# GET request to fetch photos
+GET http://localhost:8228/log/api/photos
+
+# GET request for photos by tag
+GET http://localhost:8228/log/api/photos/tag/test
+
+### Another test photo
+
+POST http://localhost:8228/log/api/photos
+
+Content-Type: application/json
+
+{
+  "title": "Second Test",
+  "description": "Testing another photo on the full stack",
+  "filename": "https://upload.wikimedia.org/wikipedia/commons/b/bb/SwansCygnus_olor.jpg",
+  "tags": ["test", "second"]
+
+}
+
+# GET request to fetch photos
+GET http://localhost:8228/log/api/photos
+
+# GET request for photos by tag
+GET http://localhost:8228/log/api/photos/tag/test
+
