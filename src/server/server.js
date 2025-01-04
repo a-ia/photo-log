@@ -55,9 +55,26 @@ router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Authentication route
+/* Authentication route
 router.post('/api/auth', (req, res) => {
   const { password } = req.body;
+  
+  if (password === process.env.ADMINPASS) {
+    const token = generateToken('admin');
+    res.json({ token });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
+*/
+
+// temp authentication route
+router.post('/api/auth', (req, res) => {
+  const { password } = req.body;
+  
+  console.log('Received password:', password);
+  console.log('Expected password:', process.env.ADMINPASS);
+  console.log('Password match:', password === process.env.ADMINPASS);
   
   if (password === process.env.ADMINPASS) {
     const token = generateToken('admin');

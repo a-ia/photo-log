@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   photo-log:
     build:
@@ -7,11 +6,11 @@ services:
     ports:
       - "8228:8228"
     volumes:
-      - ../uploads:/app/uploads
-      - ../data:/app/data
-      - ../logs:/app/logs
+      - ../uploads:/photo-log/uploads
+      - ../data:/photo-log/data
+      - ../logs:/photo-log/logs
     environment:
-      - DB_PATH=/app/data/photo_log.db
+      - DB_PATH=/photo-log/data/photo_log.db
       - ADMINPASS=${ADMINPASS}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=production
@@ -26,3 +25,4 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
