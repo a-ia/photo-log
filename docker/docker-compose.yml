@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  photo-log:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8228:8228"
+    volumes:
+      - ../uploads:/app/uploads
+      - ../data:/app/data
+      - ../logs:/app/logs
+    environment:
+      - DB_PATH=/app/data/photo_log.db
+      - ADMINPASS=${ADMINPASS}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=production
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8228/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

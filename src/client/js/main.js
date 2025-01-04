@@ -4,7 +4,7 @@ async function loadPhotos(page = 1) {
     try {
         const data = await API.getPhotos(page);
         const photoGrid = document.getElementById('photo-grid');
-        photoGrid.innerHTML = ''; // Clear existing photos
+        photoGrid.innerHTML = ''; // clear existing photos
 
         data.photos.forEach(photo => {
             const photoCard = createPhotoCard(photo);
