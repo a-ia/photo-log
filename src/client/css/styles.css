@@ -1,8 +1,8 @@
 :root {
     --primary-color: #2c3e50;
     --secondary-color: #34495e;
-    --text-color: #333;
-    --background-color: #f5f6fa;
+    --text-color: #f3f6fa;
+    --background-color: #333333;
 }
 
 body {
@@ -27,7 +27,7 @@ header {
 }
 
 .photo-card {
-    background: white;
+    background: var(--background-color);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);

@@ -38,7 +38,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Middleware (order is important)
+// Middleware
 router.use(bodyParser.json());
 router.use(express.static(path.join(__dirname, '../client')));
 
@@ -68,7 +68,6 @@ router.post('/api/auth', (req, res) => {
 });
 */
 
-// temp authentication route
 router.post('/api/auth', (req, res) => {
   const { password } = req.body;
   
@@ -152,7 +151,7 @@ router.post('/api/upload', authenticateToken, upload.single('photo'), (req, res)
   }
 });
 
-// Error logging middleware (should be last)
+// Error logging middleware
 router.use(expressWinston.errorLogger({
   winstonInstance: logger
 }));
