@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Log Upload</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <style>
+        .upload-form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .upload-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .upload-btn:hover {
+            background: #45a049;
+        }
+        
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-form">
+        <h2>Upload New Photo</h2>
+        <form id="photoUploadForm">
+            <div class="form-group">
+                <label for="photo">Select Photo:</label>
+                <input type="file" id="photo" name="photo" accept="image/*" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags">Tags (comma separated):</label>
+                <input type="text" id="tags" name="tags" placeholder="nature, landscape, etc">
+            </div>
+            
+            <button type="submit" class="upload-btn">Upload Photo</button>
+        </form>
+        <div id="message"></div>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('photoUploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const photoFile = document.getElementById('photo').files[0];
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const date = document.getElementById('date').value;
+            const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
+            
+            try {
+                // First upload the photo file
+                formData.append('photo', photoFile);
+                const uploadResponse = await fetch('/log/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) throw new Error('Photo upload failed');
+                
+                const { filename } = await uploadResponse.json();
+                
+                // Then create the photo entry
+                const photoData = {
+                    title,
+                    description,
+                    filename,
+                    date_created: date,
+                    tags
+                };
+                
+                const createResponse = await fetch('/log/api/photos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(photoData)
+                });
+                
+                if (!createResponse.ok) throw new Error('Failed to create photo entry');
+                
+                document.getElementById('message').innerHTML = 
+                    '<div class="success-message">Photo uploaded successfully!</div>';
+                document.getElementById('photoUploadForm').reset();
+                
+                // Refresh the photo grid
+                if (typeof loadPhotos === 'function') {
+                    loadPhotos();
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = 
+                    `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

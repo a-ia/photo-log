@@ -1,80 +1,99 @@
 const API = {
-  // authentication methods
-  async login(password) {
-    const response = await fetch('/log/api/auth', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ password })
-    });
-    const data = await response.json();
-    if (data.token) {
-      localStorage.setItem('token', data.token);
+    // Authentication methods
+    async login(password) {
+        console.log('API login called with password:', password);
+        try {
+            const response = await fetch('/log/api/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            });
+            console.log('Raw response:', response);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Parsed response data:', data);
+            
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                console.log('Token stored in localStorage');
+            }
+            return data;
+        } catch (error) {
+            console.error('API login error:', error);
+            throw error;
+        }
+    },
+
+    getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    },
+
+    // Public methods (still require auth in this case)
+    async getPhotos(page = 1, limit = 5) {
+        const response = await fetch(`/log/api/photos?page=${page}&limit=${limit}`, {
+            headers: this.getAuthHeaders()
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch photos: ${response.status}`);
+        }
+        return response.json();
+    },
+
+    async getPhotosByTag(tag) {
+        const response = await fetch(`/log/api/photos/tag/${tag}`, {
+            headers: this.getAuthHeaders()
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch photos by tag: ${response.status}`);
+        }
+        return response.json();
+    },
+
+    // Protected methods
+    async addPhoto(photoData) {
+        const response = await fetch('/log/api/photos', {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(photoData)
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to add photo: ${response.status}`);
+        }
+        return response.json();
+    },
+
+    async uploadPhoto(formData) {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/log/api/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to upload photo: ${response.status}`);
+        }
+        return response.json();
+    },
+
+    isAuthenticated() {
+        const token = localStorage.getItem('token');
+        return !!token;
+    },
+
+    logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/log/auth.html';
     }
-    return data;
-  },
-
-  getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    };
-  },
-
-  // public methods (no authentication required)
-  async getPhotos(page = 1, limit = 5) {
-    const response = await fetch(`/log/api/photos?page=${page}&limit=${limit}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch photos');
-    }
-    return response.json();
-  },
-
-  async getPhotosByTag(tag) {
-    const response = await fetch(`/log/api/photos/tag/${tag}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch photos by tag');
-    }
-    return response.json();
-  },
-
-  // protected methods (authentication required)
-  async addPhoto(photoData) {
-    const response = await fetch('/log/api/photos', {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(photoData)
-    });
-    if (!response.ok) {
-      throw new Error('Failed to add photo');
-    }
-    return response.json();
-  },
-
-  async uploadPhoto(formData) {
-    const token = localStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-
-    const response = await fetch('/log/api/upload', {
-      method: 'POST',
-      headers,
-      body: formData
-    });
-    if (!response.ok) {
-      throw new Error('Failed to upload photo');
-    }
-    return response.json();
-  },
-
-  isAuthenticated() {
-    return !!localStorage.getItem('token');
-  },
-
-  logout() {
-    localStorage.removeItem('token');
-  }
 };

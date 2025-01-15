@@ -26,8 +26,8 @@ initializeDatabase();
 module.exports = {
   // Add a new photo log
   addPhoto: db.prepare(`
-    INSERT INTO photos (title, description, filename, tags)
-    VALUES (@title, @description, @filename, @tags)
+    INSERT INTO photos (title, description, filename, date_created, tags)
+    VALUES (@title, @description, @filename, @date_created, @tags)
   `),
 
   // Get photos with pagination

@@ -2,6 +2,7 @@ FROM node:20-slim
 
 WORKDIR /app
 
+
 # install system dependencies for better-sqlite3
 RUN apt-get update && apt-get install -y \
     python3 \

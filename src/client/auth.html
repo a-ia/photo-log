@@ -3,7 +3,8 @@
 <head>
     <title>Photo Log Admin</title>
     <link rel="stylesheet" href="css/styles.css">
-</head>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  </head>
 <body>
     <div class="auth-container">
         <h2>Admin Login</h2>
@@ -12,20 +13,27 @@
     </div>
     <script src="js/api.js"></script>
     <script>
-        async function login() {
-            const password = document.getElementById('password').value;
-            try {
-                const result = await API.login(password);
-                if (result.token) {
-                    window.location.href = '/log';
-                } else {
-                    alert('Login failed');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('Login failed');
-            }
+async function login() {
+    const password = document.getElementById('password').value;
+    console.log('Attempting login...');
+    try {
+        console.log('Making API call...'); 
+        const result = await API.login(password);
+        console.log('Login API response:', result); 
+        
+        if (result.token) {
+            console.log('Token received, redirecting...'); 
+            localStorage.setItem('token', result.token);
+            window.location.href = '/log/index.html';  // Changed from '/log/' *change later
+        } else {
+            console.log('No token in response'); 
+            alert('Login failed');
         }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed: ' + error.message);
+    }
+}
     </script>
 </body>
 </html>
