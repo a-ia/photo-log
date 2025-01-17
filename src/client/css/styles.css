@@ -81,6 +81,10 @@ header {
     background: var(--primary-color);
 }
 
+.date {
+  color: var(--text-color);
+}
+
 #pagination {
     display: flex;
     justify-content: center;
