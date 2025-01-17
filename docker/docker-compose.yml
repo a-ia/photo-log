@@ -6,7 +6,7 @@ services:
     ports:
       - "8228:8228"
     volumes:
-      - ../uploads:/photo-log/uploads
+      - ../src/client/uploads:/photo-log/src/client/uploads
       - ../data:/photo-log/data
       - ../logs:/photo-log/logs
     environment:

@@ -9,7 +9,6 @@ const multer = require('multer');
 require('dotenv').config();
 const router = express.Router();
 
-// Configure logging first
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -28,51 +27,65 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-// Configure multer for file uploads
 const storage = multer.diskStorage({
-  destination: './src/client/uploads/',
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../client/uploads/'));
+  },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname)
+    // timestamp to prevent filename conflicts
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
   }
 });
 
-const upload = multer({ storage: storage });
+// file filter to multer config
+const upload = multer({ 
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    // Images only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  }
+});
 
 // Middleware
 router.use(bodyParser.json());
+
+// Serve static files - order matters hereee
+// First: serve the uploads directory
+router.use('/uploads', express.static(path.join(__dirname, '../client/uploads')));
+// Then serve the regular static files
 router.use(express.static(path.join(__dirname, '../client')));
 
 // Authentication middleware
 router.use((req, res, next) => {
-    // Expanded list of public paths
     const publicPaths = [
         '/api/auth',
         '/auth.html',
         '/css/styles.css',
         '/js/api.js',
-        '/favicon.ico'
+        '/favicon.ico',
+        '/uploads' 
     ];
     
-    // Allow public paths
-    if (publicPaths.some(path => req.path.endsWith(path))) {
+    // Check for if the path starts with any of the public paths
+    if (publicPaths.some(path => req.path.startsWith(path))) {
         return next();
     }
 
-    // Check for authentication
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     
-    // If requesting index.html directly and not authenticated
     if (req.path.endsWith('index.html') && !token) {
         return res.redirect('/log/auth.html');
     }
     
-    // For API requests
     if (req.path.startsWith('/api/') && !token) {
         return res.status(401).json({ error: 'Authentication required' });
     }
     
-    // For other requests without auth
     if (!token && req.path !== '/auth.html') {
         return res.redirect('/log/auth.html');
     }
@@ -88,7 +101,7 @@ router.use(expressWinston.logger({
   expressFormat: true
 }));
 
-// Health check endpoint (for Docker)
+// Health check endpoint
 router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
@@ -102,17 +115,10 @@ router.get('/', authenticateToken, (req, res) => {
 router.post('/api/auth', (req, res) => {
   const { password } = req.body;
   
-  console.log('Auth attempt received');
-  console.log('Received password:', password);
-  console.log('Expected password:', process.env.ADMINPASS);
-  console.log('Password match:', password === process.env.ADMINPASS);
-  
   if (password === process.env.ADMINPASS) {
     const token = generateToken('admin');
-    console.log('Auth successful, token generated');
     res.json({ token });
   } else {
-    console.log('Auth failed - invalid password');
     res.status(401).json({ error: 'Invalid password' });
   }
 });
@@ -126,8 +132,13 @@ router.get('/api/photos', (req, res) => {
     const photos = db.getPhotos.all({ limit, offset });
     const totalPhotos = db.getTotalPhotos.get().count;
     
+    const photosWithUrls = photos.map(photo => ({
+      ...photo,
+      filename: photo.filename.startsWith('/uploads') ? photo.filename : `/log/uploads/${photo.filename}`
+    }));
+    
     res.json({
-      photos,
+      photos: photosWithUrls,
       totalPages: Math.ceil(totalPhotos / limit),
       currentPage: page
     });
@@ -141,22 +152,30 @@ router.get('/api/photos/tag/:tag', (req, res) => {
   try {
     const tag = req.params.tag;
     const photos = db.getPhotosByTag.all({ tag: `%${tag}%` });
-    res.json(photos);
+    
+    const photosWithUrls = photos.map(photo => ({
+      ...photo,
+      filename: photo.filename.startsWith('/uploads') ? photo.filename : `/log/uploads/${photo.filename}`
+    }));
+    
+    res.json(photosWithUrls);
   } catch (error) {
     logger.error('Error getting photos by tag:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Protected routes (require authentication)
+// Protected routes
 router.post('/api/photos', authenticateToken, (req, res) => {
     const { title, description, filename, date_created, tags } = req.body;
     
     try {
+        const cleanFilename = filename.replace('/log/uploads/', '').replace('/uploads/', '');
+        
         const result = db.addPhoto.run({
             title,
             description,
-            filename,
+            filename: cleanFilename,
             date_created: date_created || new Date().toISOString(),
             tags: Array.isArray(tags) ? tags.join(',') : tags
         });
