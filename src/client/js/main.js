@@ -65,7 +65,7 @@ function createPhotoCard(photo) {
             <button class="delete-btn" onclick="deletePhoto(${photo.id})">Delete</button>
         </div>
     `;
-    
+  
     return card;
 }
 

@@ -245,3 +245,16 @@ button:disabled {
     object-fit: cover;
 }
 
+#page-info {
+  color: var(--text-color);
+}
+
+
+#prev-page {
+  color: #3a5269;
+}
+
+#next-page {
+  color: #3a5269;
+}
+
