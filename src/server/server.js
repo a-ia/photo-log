@@ -4,6 +4,7 @@ const expressWinston = require('express-winston');
 const { authenticateToken, generateToken } = require('./auth');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 const db = require('./db');
 const multer = require('multer');
 require('dotenv').config();
@@ -32,17 +33,14 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, '../client/uploads/'));
   },
   filename: (req, file, cb) => {
-    // timestamp to prevent filename conflicts
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + '-' + file.originalname);
   }
 });
 
-// file filter to multer config
 const upload = multer({ 
   storage: storage,
   fileFilter: (req, file, cb) => {
-    // Images only
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
       return cb(new Error('Only image files are allowed!'), false);
     }
@@ -50,16 +48,10 @@ const upload = multer({
   }
 });
 
-// Middleware
 router.use(bodyParser.json());
-
-// Serve static files - order matters hereee
-// First: serve the uploads directory
 router.use('/uploads', express.static(path.join(__dirname, '../client/uploads')));
-// Then serve the regular static files
 router.use(express.static(path.join(__dirname, '../client')));
 
-// Authentication middleware
 router.use((req, res, next) => {
     const publicPaths = [
         '/api/auth',
@@ -70,7 +62,6 @@ router.use((req, res, next) => {
         '/uploads' 
     ];
     
-    // Check for if the path starts with any of the public paths
     if (publicPaths.some(path => req.path.startsWith(path))) {
         return next();
     }
@@ -93,7 +84,6 @@ router.use((req, res, next) => {
     next();
 });
 
-// Logging middleware
 router.use(expressWinston.logger({
   winstonInstance: logger,
   meta: true,
@@ -101,17 +91,14 @@ router.use(expressWinston.logger({
   expressFormat: true
 }));
 
-// Health check endpoint
 router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Root route handler
 router.get('/', authenticateToken, (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
-// Authentication route
 router.post('/api/auth', (req, res) => {
   const { password } = req.body;
   
@@ -123,7 +110,6 @@ router.post('/api/auth', (req, res) => {
   }
 });
 
-// Public routes
 router.get('/api/photos', (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 5;
@@ -165,7 +151,6 @@ router.get('/api/photos/tag/:tag', (req, res) => {
   }
 });
 
-// Protected routes
 router.post('/api/photos', authenticateToken, (req, res) => {
     const { title, description, filename, date_created, tags } = req.body;
     
@@ -191,6 +176,31 @@ router.post('/api/photos', authenticateToken, (req, res) => {
     }
 });
 
+router.delete('/api/photos/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const photo = db.getPhotoById.get({ id });
+    
+    if (!photo) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    
+    const filePath = path.join(__dirname, '../client/uploads/', photo.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    
+    db.deletePhoto.run({ id });
+    
+    logger.info('Photo deleted:', { id });
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Error deleting photo:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/api/upload', authenticateToken, upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
@@ -204,7 +214,6 @@ router.post('/api/upload', authenticateToken, upload.single('photo'), (req, res)
   }
 });
 
-// Error logging middleware
 router.use(expressWinston.errorLogger({
   winstonInstance: logger
 }));

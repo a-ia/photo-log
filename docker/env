@@ -1,0 +1,3 @@
+DB_PATH=./photo_log.db
+ADMINPASS=123
+JWT_SECRET=123

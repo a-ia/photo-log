@@ -8,12 +8,11 @@ async function loadPhotos(page = 1) {
         }
         const data = await API.getPhotos(page);
         const photoGrid = document.getElementById('photo-grid');
-        photoGrid.innerHTML = ''; // clear existing photos
+        photoGrid.innerHTML = '';
         data.photos.forEach(photo => {
             const photoCard = createPhotoCard(photo);
             photoGrid.appendChild(photoCard);
         });
-        // refresh the pagination
         document.getElementById('prev-page').disabled = page === 1;
         document.getElementById('next-page').disabled = page >= data.totalPages;
         document.getElementById('page-info').textContent = `Page ${page}`;
@@ -34,7 +33,7 @@ async function loadPhotosByTag(tag) {
         }
         const photos = await API.getPhotosByTag(tag);
         const photoGrid = document.getElementById('photo-grid');
-        photoGrid.innerHTML = ''; // Clear existing photos
+        photoGrid.innerHTML = '';
         photos.forEach(photo => {
             const photoCard = createPhotoCard(photo);
             photoGrid.appendChild(photoCard);
@@ -63,10 +62,25 @@ function createPhotoCard(photo) {
                 ${tags.map(tag => `<span class="tag" onclick="loadPhotosByTag('${tag.trim()}')">${tag.trim()}</span>`).join('')}
             </div>
             <p class="date">${new Date(photo.date_created).toLocaleDateString()}</p>
+            <button class="delete-btn" onclick="deletePhoto(${photo.id})">Delete</button>
         </div>
     `;
     
     return card;
+}
+
+async function deletePhoto(id) {
+    if (!confirm('Are you sure you want to delete this photo?')) {
+        return;
+    }
+    
+    try {
+        await API.deletePhoto(id);
+        loadPhotos(currentPage);
+    } catch (error) {
+        console.error('Error deleting photo:', error);
+        alert('Failed to delete photo: ' + error.message);
+    }
 }
 
 function addUploadLink() {
@@ -82,7 +96,6 @@ function addUploadLink() {
     }
 }
 
-// Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
     if (!API.isAuthenticated()) {
         window.location.href = '/log/auth.html';
@@ -92,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPhotos(1);
     addUploadLink();
     
-    // Set up pagination event listeners
     document.getElementById('prev-page').addEventListener('click', () => {
         if (currentPage > 1) loadPhotos(currentPage - 1);
     });

@@ -4,9 +4,7 @@ require('dotenv').config();
 
 const db = new Database(process.env.DB_PATH || './photo_log.db');
 
-// Initialize database with tables
 function initializeDatabase() {
-  // Create photos table
   db.exec(`
     CREATE TABLE IF NOT EXISTS photos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,18 +17,14 @@ function initializeDatabase() {
   `);
 }
 
-// Initialize the database
 initializeDatabase();
 
-// Export database methods
 module.exports = {
-  // Add a new photo log
   addPhoto: db.prepare(`
     INSERT INTO photos (title, description, filename, date_created, tags)
     VALUES (@title, @description, @filename, @date_created, @tags)
   `),
 
-  // Get photos with pagination
   getPhotos: db.prepare(`
     SELECT * FROM photos 
     ORDER BY date_created DESC 
@@ -38,15 +32,21 @@ module.exports = {
     OFFSET @offset
   `),
 
-  // Get photos by tag
   getPhotosByTag: db.prepare(`
     SELECT * FROM photos 
     WHERE tags LIKE @tag
     ORDER BY date_created DESC
   `),
 
-  // Get total count of photos
   getTotalPhotos: db.prepare(`
     SELECT COUNT(*) as count FROM photos
+  `),
+
+  getPhotoById: db.prepare(`
+    SELECT * FROM photos WHERE id = @id
+  `),
+
+  deletePhoto: db.prepare(`
+    DELETE FROM photos WHERE id = @id
   `)
 };

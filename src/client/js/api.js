@@ -87,6 +87,17 @@ const API = {
         return response.json();
     },
 
+    async deletePhoto(photoId) {
+      const response = await fetch(`/log/api/photos/${photoId}`, {
+         method: 'DELETE',
+         headers: this.getAuthHeaders()
+      });
+      if (!response.ok) {
+          throw new Error(`Failed to delete photo: ${response.status}`);
+        }
+        return response.json();
+    },
+
     isAuthenticated() {
         const token = localStorage.getItem('token');
         return !!token;
