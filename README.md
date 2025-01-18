@@ -33,6 +33,14 @@ Alternatively you can deploy **Photo Log** using Docker Compose. Configure the d
 This project is actively being developed, and new features, enhancements, and updates are planned.
 
 ---
-![1-current](https://github.com/user-attachments/assets/a8661d0a-60ec-47b5-aaba-de5b88f8586c)
----
-![2-current](https://github.com/user-attachments/assets/dc0d2a92-2a96-49bc-a273-5fb832efa5ab)
+
+# Photo Log Development: A Visual Progression of the UI
+## Main Page after authentication, with upload function
+![screenshot-one](https://github.com/user-attachments/assets/e2d85ffd-5476-419f-b57b-a9ca6c87dc39)
+## Creating a new Photo Log
+![screenshot-two](https://github.com/user-attachments/assets/094597f6-5bd0-43ca-96dd-b85225a48517)
+## Succesful message
+![screenshot-three](https://github.com/user-attachments/assets/ee408d88-971f-4e8b-aafd-c8067ae291d7)
+## Redirect to updated Main Page
+![screenshot-four](https://github.com/user-attachments/assets/dea9f1ab-cc92-4195-8ae2-0d8c59964c0e)
+
