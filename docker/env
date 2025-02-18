@@ -1,1 +1,3 @@
-
+DB_PATH=./photo_log.db
+ADMINPASS=angel
+JWT_SECRET=angel

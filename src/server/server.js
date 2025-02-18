@@ -59,7 +59,10 @@ router.use((req, res, next) => {
         '/css/styles.css',
         '/js/api.js',
         '/favicon.ico',
-        '/uploads' 
+        '/uploads',
+        '/',
+        '/api/photos',
+        '/index.html'
     ];
     
     if (publicPaths.some(path => req.path.startsWith(path))) {
@@ -69,18 +72,32 @@ router.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     
-    if (req.path.endsWith('index.html') && !token) {
-        return res.redirect('/log/auth.html');
+    if (req.path.includes('/upload.html')) {
+        if (!token) {
+            return res.redirect('/auth.html');  // Fixed redirect path
+        }
+        // Verify token before allowing access to upload.html
+        try {
+            authenticateToken(req, res, () => next());
+        } catch (error) {
+            return res.redirect('/auth.html');
+        }
+        return;
     }
-    
-    if (req.path.startsWith('/api/upload') && !token) {
-        return res.status(401).json({ error: 'Authentication required' });
+
+    if (req.path.startsWith('/api/upload')) {
+        if (!token) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+        return authenticateToken(req, res, next);
     }
-    
+
+  /*
     if (!token && req.path !== '/auth.html') {
         return res.redirect('/log/auth.html');
     }
-
+  */
+  
     next();
 });
 
@@ -95,7 +112,7 @@ router.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-router.get('/', authenticateToken, (req, res) => {
+router.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
@@ -151,7 +168,7 @@ router.get('/api/photos/tag/:tag', (req, res) => {
   }
 });
 
-router.post('/api/photos', authenticateToken, (req, res) => {
+router.post('/api/photos', (req, res) => {
     const { title, description, filename, date_created, tags } = req.body;
     
     try {

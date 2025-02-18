@@ -2,10 +2,6 @@ let currentPage = 1;
 
 async function loadPhotos(page = 1) {
     try {
-        if (!API.isAuthenticated()) {
-            window.location.href = '/log/auth.html';
-            return;
-        }
         const data = await API.getPhotos(page);
         const photoGrid = document.getElementById('photo-grid');
         photoGrid.innerHTML = '';
@@ -19,18 +15,11 @@ async function loadPhotos(page = 1) {
         currentPage = page;
     } catch (error) {
         console.error('Error loading photos:', error);
-        if (error.message.includes('401')) {
-            window.location.href = '/log/auth.html';
-        }
     }
 }
 
 async function loadPhotosByTag(tag) {
     try {
-        if (!API.isAuthenticated()) {
-            window.location.href = '/log/auth.html';
-            return;
-        }
         const photos = await API.getPhotosByTag(tag);
         const photoGrid = document.getElementById('photo-grid');
         photoGrid.innerHTML = '';
@@ -41,9 +30,6 @@ async function loadPhotosByTag(tag) {
         document.getElementById('page-info').textContent = `Tag: ${tag}`;
     } catch (error) {
         console.error('Error loading photos by tag:', error);
-        if (error.message.includes('401')) {
-            window.location.href = '/log/auth.html';
-        }
     }
 }
 
@@ -53,6 +39,10 @@ function createPhotoCard(photo) {
     
     const tags = photo.tags ? photo.tags.split(',') : [];
     
+    const deleteButton = API.isAuthenticated() 
+        ? `<button class="delete-btn" onclick="deletePhoto(${photo.id})">Delete</button>`
+        : '';
+
     card.innerHTML = `
         <img src="${photo.filename}" alt="${photo.title}">
         <div class="photo-info">
@@ -62,14 +52,20 @@ function createPhotoCard(photo) {
             <div class="tags">
                 ${tags.map(tag => `<span class="tag" onclick="loadPhotosByTag('${tag.trim()}')">${tag.trim()}</span>`).join('')}
             </div>
-            <button class="delete-btn" onclick="deletePhoto(${photo.id})">Delete</button>
+            ${deleteButton}
         </div>
     `;
   
     return card;
 }
 
+
 async function deletePhoto(id) {
+    if (!API.isAuthenticated()) {
+        window.location.href = 'auth.html';
+        return;
+    }
+    
     if (!confirm('Are you sure you want to delete this photo?')) {
         return;
     }
@@ -79,29 +75,35 @@ async function deletePhoto(id) {
         loadPhotos(currentPage);
     } catch (error) {
         console.error('Error deleting photo:', error);
-        alert('Failed to delete photo: ' + error.message);
+        if (error.message.includes('401')) {
+            window.location.href = 'auth.html';
+        } else {
+            alert('Failed to delete photo: ' + error.message);
+        }
     }
 }
 
 function addUploadLink() {
-    if (API.isAuthenticated()) {
-        const header = document.querySelector('header');
-        if (header) {
-            const uploadLink = document.createElement('a');
-            uploadLink.href = 'upload.html';
-            uploadLink.className = 'upload-link';
-            uploadLink.textContent = 'Upload New Photo';
+    const header = document.querySelector('header');
+    if (header) {
+        const uploadLink = document.createElement('a');
+        uploadLink.href = 'upload.html';
+        uploadLink.className = 'upload-link';
+        uploadLink.textContent = 'Upload New Photo';
+        
+        // Only show upload link if authenticated
+        if (API.isAuthenticated()) {
+            header.appendChild(uploadLink);
+        } else {
+            // Add a login link instead
+            uploadLink.href = 'auth.html';
+            uploadLink.textContent = 'Login to Upload';
             header.appendChild(uploadLink);
         }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!API.isAuthenticated()) {
-        window.location.href = '/log/auth.html';
-        return;
-    }
-
     loadPhotos(1);
     addUploadLink();
     
