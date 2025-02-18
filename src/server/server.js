@@ -73,7 +73,7 @@ router.use((req, res, next) => {
         return res.redirect('/log/auth.html');
     }
     
-    if (req.path.startsWith('/api/') && !token) {
+    if (req.path.startsWith('/api/upload') && !token) {
         return res.status(401).json({ error: 'Authentication required' });
     }
     
