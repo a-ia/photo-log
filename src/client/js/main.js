@@ -58,10 +58,10 @@ function createPhotoCard(photo) {
         <div class="photo-info">
             <h2>${photo.title}</h2>
             <p class="description">${photo.description || ''}</p>
+            <p class="date">${new Date(photo.date_created).toLocaleDateString()}</p>         
             <div class="tags">
                 ${tags.map(tag => `<span class="tag" onclick="loadPhotosByTag('${tag.trim()}')">${tag.trim()}</span>`).join('')}
             </div>
-            <p class="date">${new Date(photo.date_created).toLocaleDateString()}</p>
             <button class="delete-btn" onclick="deletePhoto(${photo.id})">Delete</button>
         </div>
     `;
@@ -113,3 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPhotos(currentPage + 1);
     });
 });
+
+
+function refreshPath() {
+    const currentPath = window.location.pathname;
+    const hasIndexHtml = currentPath.endsWith('log/');
+    const basePath = currentPath.split('#')[0];
+    
+    if (hasIndexHtml) {
+        window.location.href = basePath;
+    } else {
+        window.location.href = basePath + 'log/';
+    }
+}
+

@@ -39,7 +39,7 @@ const API = {
     },
 
     // Public methods (still require auth in this case)
-    async getPhotos(page = 1, limit = 4) {
+    async getPhotos(page = 1, limit = 9) { // Test purposes
         const response = await fetch(`/log/api/photos?page=${page}&limit=${limit}`, {
             headers: this.getAuthHeaders()
         });
