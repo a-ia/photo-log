@@ -10,10 +10,17 @@ const multer = require('multer');
 require('dotenv').config();
 const router = express.Router();
 
+const sizeFormat = winston.format((info) => {
+  const logString = JSON.stringify(info);
+  info.size_bytes = Buffer.byteLength(logString, 'utf8');
+  return info;
+});
+
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
     winston.format.timestamp(),
+    sizeFormat(),
     winston.format.json()
   ),
   transports: [
@@ -74,13 +81,13 @@ router.use((req, res, next) => {
     
     if (req.path.includes('/upload.html')) {
         if (!token) {
-            return res.redirect('/auth.html');  // Fixed redirect path
+            return res.redirect('/log/auth.html');  // Fixed redirect path
         }
         // Verify token before allowing access to upload.html
         try {
             authenticateToken(req, res, () => next());
         } catch (error) {
-            return res.redirect('/auth.html');
+            return res.redirect('/log/auth.html');
         }
         return;
     }

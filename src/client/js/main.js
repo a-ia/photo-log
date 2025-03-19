@@ -87,19 +87,17 @@ function addUploadLink() {
     const header = document.querySelector('header');
     if (header) {
         const uploadLink = document.createElement('a');
-        uploadLink.href = 'upload.html';
         uploadLink.className = 'upload-link';
-        uploadLink.textContent = 'Upload New Photo';
         
-        // Only show upload link if authenticated
         if (API.isAuthenticated()) {
-            header.appendChild(uploadLink);
+            uploadLink.href = '/log/upload.html';
+            uploadLink.textContent = 'Upload New Photo';
         } else {
-            // Add a login link instead
-            uploadLink.href = 'auth.html';
+            uploadLink.href = '/log/auth.html';
             uploadLink.textContent = 'Login to Upload';
-            header.appendChild(uploadLink);
         }
+        
+        header.appendChild(uploadLink);
     }
 }
 
