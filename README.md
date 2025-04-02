@@ -35,12 +35,14 @@ This project is actively being developed, and new features, enhancements, and up
 ---
 
 # Photo Log Development: A Visual Progression of the UI
-## Main Page after authentication, with upload function
-![screenshot-one](https://github.com/user-attachments/assets/e2d85ffd-5476-419f-b57b-a9ca6c87dc39)
+## Main Page before authentication
+![image](https://github.com/user-attachments/assets/88e502ca-d4e8-400f-9138-f21b829fa069)
+## Main Page after authentication, with upload access
+![image](https://github.com/user-attachments/assets/9707bd85-5916-4289-9010-536d5a6c2874)
 ## Creating a new Photo Log
-![screenshot-two](https://github.com/user-attachments/assets/094597f6-5bd0-43ca-96dd-b85225a48517)
-## Succesful message
-![screenshot-three](https://github.com/user-attachments/assets/ee408d88-971f-4e8b-aafd-c8067ae291d7)
+![image](https://github.com/user-attachments/assets/b17d9245-427a-45dc-8c8e-3e19d7fe890b)
 ## Redirect to updated Main Page
-![screenshot-four](https://github.com/user-attachments/assets/dea9f1ab-cc92-4195-8ae2-0d8c59964c0e)
+![image](https://github.com/user-attachments/assets/1e0df000-cc0b-4662-9be5-18f0782c33df)
+## Darkmode theme: Ooo, that's more like it!
+![image](https://github.com/user-attachments/assets/2e091c77-ddf7-45c8-8a1a-ae5f06015fc1)
 
