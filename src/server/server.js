@@ -9,6 +9,8 @@ const db = require('./db');
 const multer = require('multer');
 require('dotenv').config();
 const router = express.Router();
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const sizeFormat = winston.format((info) => {
   const logString = JSON.stringify(info);
@@ -55,9 +57,44 @@ const upload = multer({
   }
 });
 
+// CORS Configuration - Note: Apply before any other middleware
+const corsOptions = {
+    origin: '*', // Allow all origins in development
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    credentials: true
+};
+
+// Apply CORS middleware first
+router.use(cors(corsOptions));
+
 router.use(bodyParser.json());
-router.use('/uploads', express.static(path.join(__dirname, '../client/uploads')));
-router.use(express.static(path.join(__dirname, '../client')));
+
+// CORS headers to static file serving
+const staticOptions = {
+    setHeaders: (res, path) => {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Access-Control-Allow-Methods', 'GET');
+        res.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    }
+};
+
+// Static middleware with CORS headers
+router.use('/uploads', express.static(path.join(__dirname, '../client/uploads'), staticOptions));
+router.use(express.static(path.join(__dirname, '../client'), staticOptions));
+
+// CORS headers for the widget
+router.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 router.use((req, res, next) => {
     const publicPaths = [
@@ -69,7 +106,10 @@ router.use((req, res, next) => {
         '/uploads',
         '/',
         '/api/photos',
-        '/index.html'
+        '/index.html',
+        '/widget/demo',
+        '/widget/photo-log-widget.js',
+        '/api/widget/photos'
     ];
     
     if (publicPaths.some(path => req.path.startsWith(path))) {
@@ -81,7 +121,7 @@ router.use((req, res, next) => {
     
     if (req.path.includes('/upload.html')) {
         if (!token) {
-            return res.redirect('/log/auth.html');  // Fixed redirect path
+            return res.redirect('/log/auth.html');  
         }
         // Verify token before allowing access to upload.html
         try {
@@ -99,11 +139,6 @@ router.use((req, res, next) => {
         return authenticateToken(req, res, next);
     }
 
-  /*
-    if (!token && req.path !== '/auth.html') {
-        return res.redirect('/log/auth.html');
-    }
-  */
   
     next();
 });
@@ -243,3 +278,50 @@ router.use(expressWinston.errorLogger({
 }));
 
 module.exports = router;
+
+// Widget-specific API endpoint (public access)
+router.get('/api/widget/photos', (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = Math.min(parseInt(req.query.limit) || 9999, 9999);
+  const offset = (page - 1) * limit;
+  
+  try {
+    const photos = limit ? db.getPhotos.all({ limit, offset }) : db.getPhotos.all();
+    const totalPhotos = db.getTotalPhotos.get().count;
+    
+    // Only return public-safe photo data for widget
+    const widgetPhotos = photos.map(photo => ({
+      id: photo.id,
+      title: photo.title,
+      description: photo.description,
+      filename: photo.filename.startsWith('/uploads/') ? `/log${photo.filename}` : `/log/uploads/${photo.filename}`,
+      date_created: photo.date_created,
+      tags: photo.tags
+    }));
+    
+    res.json({
+      photos: widgetPhotos,
+      totalPages: limit ? Math.ceil(totalPhotos / limit) : 1,
+      currentPage: page,
+      total: totalPhotos
+    });
+  } catch (error) {
+    logger.error('Error getting widget photos:', error);
+    res.status(500).json({ error: 'Failed to load photos' });
+  }
+});
+
+// Widget JavaScript file endpoint
+router.get('/widget/photo-log-widget.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+  
+  // Serve the widget JavaScript file from here
+  // For now, returns a simple response
+  res.sendFile(path.join(__dirname, '../client/widget/photo-log-widget.js'));
+});
+
+// Widget demo page
+router.get('/widget/demo', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/widget/demo.html'));
+});

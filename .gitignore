@@ -3,3 +3,11 @@ data/
 logs/
 node_modules/
 photo_log.db
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/tests
+playwright.config.js
