@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Log Widget Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .widget-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .widget-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            min-width: 0; /* Prevents grid blowout */
+            overflow: hidden;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .widget-container > div {
+            max-width: 100% !important; /* Ensures widget doesn't overflow */
+            min-width: 0; /* Allows shrinking below specified width */
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            min-width: 0; /* Prevents grid blowout */
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .control-group input,
+        .control-group select,
+        .control-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus,
+        .control-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-input {
+            height: 40px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .preset-btn.light {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #dee2e6;
+        }
+
+        .preset-btn.dark {
+            background: #343a40;
+            color: white;
+            border: 2px solid #495057;
+        }
+
+        .preset-btn.ocean {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: 2px solid #4facfe;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .code-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .code-section h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status-loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .status-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .reload-btn {
+            width: 100%; 
+            padding: 12px; 
+            background: #667eea; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .reload-btn:hover {
+            background: #5a6fd8;
+        }
+
+        @media (max-width: 768px) {
+            .widget-demo {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .preset-buttons {
+                flex-wrap: wrap;
+            }
+
+            .widget-container {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .widget-container {
+                padding: 5px;
+            }
+        }
+
+        /* Demo Widget Styles */
+        #demo-widget {
+            margin: 20px auto;
+        }
+
+        /* Default theme */
+        .photo-log-widget {
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: white;
+            color: #333;
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        .plw-title {
+            color: #333;
+        }
+
+        .plw-description {
+            color: #666;
+        }
+
+        .plw-nav-button {
+            background: #f0f0f0;
+            color: #333;
+            transition: all 0.2s ease;
+        }
+
+        .plw-nav-button:hover:not(:disabled) {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        /* Style Controls */
+        .style-controls {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .control-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .control-group input[type="color"] {
+            height: 40px;
+        }
+
+        .live-css {
+            margin-top: 20px;
+            background: #2c3e50;
+            color: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Photo Log Widget Demo</h1>
+            <p>Customize and preview your embeddable photo gallery widget with live data</p>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">Interactive Custom Widget Preview</h2>
+            
+            <div id="status-container"></div>
+            
+            <div class="widget-demo">
+                <div class="widget-container">
+                    <div id="demo-widget"></div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>API Base URL</label>
+                        <input type="text" id="apiUrl" value="/log" onchange="reloadWidget()" placeholder="/log">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoplay" onchange="updateWidget()">
+                            <label for="autoplay">Enable Autoplay</label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="showTitle" checked onchange="updateWidget()">
+                            <label for="showTitle">Show Titles</label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="showDescription" checked onchange="updateWidget()">
+                            <label for="showDescription">Show Descriptions</label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="showDate" checked onchange="updateWidget()">
+                            <label for="showDate">Show Dates</label>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+
+                    <h3 style="margin-bottom: 15px;">CSS Styling</h3>
+                    
+                    <div class="control-group">
+                        <label>Widget Width</label>
+                        <input type="text" id="css-width" value="400px" onchange="updateCSS()" oninput="updateCSS()">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Border Radius</label>
+                        <input type="text" id="css-border-radius" value="12px" onchange="updateCSS()" oninput="updateCSS()">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Background Color</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="css-background" value="#ffffff" onchange="updateCSS()" oninput="updateCSS()" class="color-input" style="flex: 1;">
+                            <div class="checkbox-group" style="margin: 0;">
+                                <input type="checkbox" id="css-background-transparent" onchange="updateCSS()">
+                                <label for="css-background-transparent">Transparent</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Box Shadow</label>
+                        <input type="text" id="css-box-shadow" value="0 4px 20px rgba(0, 0, 0, 0.1)" onchange="updateCSS()" oninput="updateCSS()">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Title Color</label>
+                        <input type="color" id="css-title-color" value="#333333" onchange="updateCSS()" oninput="updateCSS()" class="color-input">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Description Color</label>
+                        <input type="color" id="css-description-color" value="#666666" onchange="updateCSS()" oninput="updateCSS()" class="color-input">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Button Style</label>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
+                            <input type="color" id="css-button-bg" value="#f0f0f0" onchange="updateCSS()" oninput="updateCSS()" class="color-input" style="flex: 1;">
+                            <div class="checkbox-group" style="margin: 0;">
+                                <input type="checkbox" id="css-button-bg-transparent" onchange="updateCSS()">
+                                <label for="css-button-bg-transparent">Transparent</label>
+                            </div>
+                        </div>
+                        <input type="color" id="css-button-color" value="#333333" onchange="updateCSS()" oninput="updateCSS()" class="color-input" style="margin-top: 5px;">
+                        <input type="text" id="css-button-radius" value="4px" onchange="updateCSS()" oninput="updateCSS()" placeholder="Button border radius" style="margin-top: 5px;">
+                    </div>
+
+                    <div class="code-section" style="margin-top: 20px;">
+                        <h3>Generated CSS</h3>
+                        <div class="code-block" id="live-css"></div>
+                        <button class="copy-btn" onclick="copyCode('live-css')">Copy CSS</button>
+                    </div>
+
+                    <div class="control-group">
+                        <button onclick="reloadWidget()" class="reload-btn">
+                            Reload Photos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">Implementation Code</h2>
+            <div class="code-section">
+                <h3>How to Add the Widget to Your Website</h3>
+                <p style="margin-bottom: 20px; color: #666;">
+                    Follow these steps to add the photo gallery widget to your website:
+                </p>
+                
+                <h4 style="color: #333; margin-bottom: 10px;">1. Add the Container Element</h4>
+                <p style="margin-bottom: 15px; color: #666;">
+                    Add a div element where you want the widget to appear. Use data attributes to configure the widget:
+                </p>
+                <div class="code-block" style="margin-bottom: 20px;">
+&lt;div id="your-gallery-id" 
+    data-photo-log-widget
+    data-api-url="[YOUR_PHOTO_LOG_URL]"
+    data-autoplay="false"
+    data-show-title="true"
+    data-show-description="true"
+    data-show-date="true"
+&gt;&lt;/div&gt;</div>
+
+                <h4 style="color: #333; margin-bottom: 10px;">2. Add the Widget Script</h4>
+                <p style="margin-bottom: 15px; color: #666;">
+                    Add the widget script before the closing &lt;/body&gt; tag. Replace [YOUR_PHOTO_LOG_URL] with your actual photo-log URL:
+                </p>
+                <div class="code-block" style="margin-bottom: 20px;">
+&lt;script src="[YOUR_PHOTO_LOG_URL]/widget/photo-log-widget.js"&gt;&lt;/script&gt;</div>
+
+                <h4 style="color: #333; margin-bottom: 10px;">3. Configure the URL</h4>
+                <p style="margin-bottom: 15px; color: #666;">
+                    For local development:
+                </p>
+                <div class="code-block" style="margin-bottom: 20px;">
+data-api-url="http://localhost:8228/log"
+&lt;script src="http://localhost:8228/log/widget/photo-log-widget.js"&gt;&lt;/script&gt;</div>
+
+                <p style="margin-bottom: 15px; color: #666;">
+                    For production, use your domain:
+                </p>
+                <div class="code-block" style="margin-bottom: 20px;">
+data-api-url="https://your-domain.com/log"
+&lt;script src="https://your-domain.com/log/widget/photo-log-widget.js"&gt;&lt;/script&gt;</div>
+
+                <h4 style="color: #333; margin-bottom: 10px;">4. Configure CORS (Important)</h4>
+                <p style="margin-bottom: 15px; color: #666;">
+                    Add the following to your photo-log server's <code>.env</code> file to specify which domains can access the widget:
+                </p>
+                <div class="code-block" style="margin-bottom: 20px;">
+# Widget Configuration - specify allowed domains for CORS
+WIDGET_ALLOWED_ORIGINS=http://localhost:8000/,https://your-website.com/
+
+# For development, you can use:
+WIDGET_ALLOWED_ORIGINS=http://localhost:8000/
+
+# For production, list all allowed domains:
+WIDGET_ALLOWED_ORIGINS=https://your-website.com/,https://another-site.com/
+
+</div>
+
+                <p style="margin-bottom: 20px; color: #666;">
+                    ⚠️ Make sure to include all domains where you plan to embed the widget. For security reasons, avoid using <code>*</code> in production.
+                </p>
+
+                <h4 style="color: #333; margin-bottom: 10px;">5. Style the Widget (Optional)</h4>
+                <p style="margin-bottom: 15px; color: #666;">
+                    Add custom CSS to style the widget. Use the interactive preview above to generate the CSS you need.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="photo-log-widget.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const apiUrl = document.getElementById('apiUrl').value || '/log';
+            PhotoLogWidget.init({
+                containerId: 'demo-widget',
+                apiUrl: apiUrl,
+                autoplay: false,
+                showTitle: true,
+                showDescription: true,
+                showDate: true,
+                limit: 12
+            });
+            updateCSS(); 
+        });
+
+        function updateWidget() {
+            const apiUrl = document.getElementById('apiUrl').value || '/log';
+            const config = {
+                apiUrl: apiUrl,
+                autoplay: document.getElementById('autoplay').checked,
+                showTitle: document.getElementById('showTitle').checked,
+                showDescription: document.getElementById('showDescription').checked,
+                showDate: document.getElementById('showDate').checked,
+                limit: 12
+            };
+
+            PhotoLogWidget.reload(config);
+            setTimeout(updateCSS, 100); 
+        }
+
+        function reloadWidget() {
+            const apiUrl = document.getElementById('apiUrl').value || '/log';
+            PhotoLogWidget.reload({
+                apiUrl: apiUrl,
+                limit: 12
+            });
+            setTimeout(updateCSS, 100);
+        }
+
+        function updateCSS() {
+            const widgetContainer = document.querySelector('#demo-widget .photo-log-widget');
+            if (!widgetContainer) return;
+
+            const isBackgroundTransparent = document.getElementById('css-background-transparent').checked;
+            const isButtonBgTransparent = document.getElementById('css-button-bg-transparent').checked;
+
+            widgetContainer.style.width = document.getElementById('css-width').value;
+            widgetContainer.style.backgroundColor = isBackgroundTransparent ? 'transparent' : document.getElementById('css-background').value;
+            widgetContainer.style.borderRadius = document.getElementById('css-border-radius').value;
+            widgetContainer.style.boxShadow = document.getElementById('css-box-shadow').value;
+
+            const title = widgetContainer.querySelector('.plw-title');
+            if (title) {
+                title.style.color = document.getElementById('css-title-color').value;
+            }
+
+            const description = widgetContainer.querySelector('.plw-description');
+            if (description) {
+                description.style.color = document.getElementById('css-description-color').value;
+            }
+
+            const date = widgetContainer.querySelector('.plw-date');
+            if (date) {
+                date.style.color = document.getElementById('css-description-color').value;
+            }
+
+            const buttons = widgetContainer.querySelectorAll('.plw-nav-button');
+            const buttonRadius = document.getElementById('css-button-radius').value;
+            buttons.forEach(button => {
+                button.style.backgroundColor = isButtonBgTransparent ? 'transparent' : document.getElementById('css-button-bg').value;
+                button.style.color = document.getElementById('css-button-color').value;
+                button.style.borderRadius = buttonRadius;
+            });
+
+            // Generate CSS code for display
+            const css = `/* Photo Log Widget Custom Styles */            
+.photo-log-widget {
+    width: ${document.getElementById('css-width').value};
+    background-color: ${isBackgroundTransparent ? 'transparent' : document.getElementById('css-background').value};
+    border-radius: ${document.getElementById('css-border-radius').value};
+    box-shadow: ${document.getElementById('css-box-shadow').value};
+}
+
+.plw-title {
+    color: ${document.getElementById('css-title-color').value};
+}
+
+.plw-description {
+    color: ${document.getElementById('css-description-color').value};
+}
+
+.plw-nav-button {
+    background-color: ${isButtonBgTransparent ? 'transparent' : document.getElementById('css-button-bg').value};
+    color: ${document.getElementById('css-button-color').value};
+    border-radius: ${buttonRadius};
+}
+
+.plw-nav-button:hover:not(:disabled) {
+    background-color: ${isButtonBgTransparent ? 'transparent' : document.getElementById('css-button-bg').value}dd;
+    transform: translateY(-1px);
+}
+
+.plw-date {
+    color: ${document.getElementById('css-description-color').value};
+}`;
+
+            const codeBlock = document.getElementById('live-css');
+            codeBlock.textContent = css;
+        }
+
+        function copyCode(elementId) {
+            const codeBlock = document.getElementById(elementId);
+            const textArea = document.createElement('textarea');
+            textArea.value = codeBlock.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const button = codeBlock.nextElementSibling;
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            setTimeout(() => button.textContent = originalText, 2000);
+        }
+
+        const cssControls = document.querySelectorAll('input[id^="css-"]');
+        cssControls.forEach(control => {
+            ['input', 'change'].forEach(event => {
+                control.addEventListener(event, () => {
+                    requestAnimationFrame(updateCSS);
+                });
+            });
+        });
+
+        updateCSS();
+    </script>
+</body>
+</html>

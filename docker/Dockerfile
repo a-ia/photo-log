@@ -12,11 +12,14 @@ RUN apt-get update && apt-get install -y \
 # copy package files
 COPY package*.json ./
 
-# install dependencies and rebuild better-sqlite3
-RUN npm install && npm rebuild better-sqlite3
+# install dependencies
+RUN npm install
 
 # copy application files
 COPY . .
+
+# rebuild better-sqlite3 for the current environment
+RUN npm rebuild better-sqlite3
 
 # create uploads directory
 RUN mkdir -p src/client/uploads && chmod 777 src/client/uploads

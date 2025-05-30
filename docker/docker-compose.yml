@@ -14,6 +14,7 @@ services:
       - ADMINPASS=${ADMINPASS}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=production
+      - WIDGET_ALLOWED_ORIGINS=${WIDGET_ALLOWED_ORIGINS}
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8228/health"]
